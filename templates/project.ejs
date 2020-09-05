@@ -17,6 +17,7 @@
       <p>an open repository of legal forms</p>
     </header>
     <main role=main>
+      <% if (logo) { %><img class=logo src="<%= logo %>" alt=logo><% } %>
       <h2><%= project %></h2>
       <%- description %>
       <ul>
@@ -27,7 +28,7 @@
         </li>
       <% }) %>
       </ul>
-      <h3>About</h3>
+      <h3 id=about>About</h3>
       <table>
         <tr>
           <th>Publisher</th>
@@ -49,20 +50,22 @@
           </td>
         </tr>
         <% } %>
+        <% const prefix = new RegExp('^https://') %>
         <% if (website) { %>
         <tr>
           <th>Website</th>
-          <td><a href="<%= website %>"><%= website %></a></td>
+          <td><a href="<%= website %>"><%= website.replace(prefix, '') %></a></td>
         </tr>
         <% } %>
         <tr>
           <th>RSS Feed</th>
-          <td><a href="<%= rss %>"><%= rss %></a></td>
+          <td><a href="<%= rss %>"><%= rss.replace(prefix, '') %></a></td>
         </tr>
       </table>
     </main>
     <footer role=contentinfo>
       <p><a href=/guide#editions>What's with the edition numbers?</a></p>
+      <p><a href=/terms>Terms of Service</a></p>
     </footer>
   </body>
 </html>

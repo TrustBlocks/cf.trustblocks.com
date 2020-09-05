@@ -14,9 +14,17 @@
       <p class=edition><%= spelled %></p>
     </header>
     <main role=main>
+      <% if (draft) { %>
+      <aside class=warning>
+        <p>
+          This is a draft.
+          Check <a href="/<%= publisher %>/<%= project %>">the project page</a> for the latest edition.
+        </p>
+      </aside>
+      <% } %>
       <%- rendered %>
-      <p class=digest><code class=digest><%= digest %></code></p>
-      <table>
+      <p id=digest class=digest><code class=digest><%= digest %></code></p>
+      <table id=metadata>
         <tr>
           <th>Type</th>
           <td><%= projectMetadata.component ? 'Component' : 'Form' %></td>
@@ -31,7 +39,7 @@
         </tr>
         <tr>
           <th>Edition</th>
-          <td><%= edition %></td>
+          <td><%= spelled %> (<%= edition %>)</td>
         </tr>
         <tr>
           <th>Published</th>
@@ -59,6 +67,8 @@
             <a href="/<%= license %>">Tiny Verbatim Copyright License 1e</a>
             <% } else if (license === 'waypoint/waypoint-license/1e') { %>
             <a href="/<%= license %>">Waypoint NDA License 1e</a>
+            <% } else if (license === 'blueoakcouncil/model-permission/1e') { %>
+            <a href="/<%= license %>">Blue Oak Model License Permission Notice</a>
             <% } else if (license === 'CC0-1.0') { %>
             <a href=https://creativecommons.org/publicdomain/zero/1.0/legalcode>CC0 1.0 Universal</a>
             <% } %>
@@ -70,20 +80,27 @@
           <td>
             <ul>
               <li><a download="<%= publisher %> <%= project %> <%= edition %>.docx" href="<%= docx %>">Microsoft Word</a></li>
-              <li><a download="<%= publisher %> <%= project %> <%= edition %>.json" href="<%= json %>">JSON Data</a></li>
+              <li><a download="<%= publisher %> <%= project %> <%= edition %> (complete).docx" href="<%= completeDOCX %>">Microsoft Word (Complete)</a></li>
               <li><a download="<%= publisher %> <%= project %> <%= edition %>.md" href="<%= markdown %>">Markdown</a></li>
+              <li><a download="<%= publisher %> <%= project %> <%= edition %> (original).md" href="<%= originalMarkdown %>">Markdown (Original)</a></li>
+              <li><a download="<%= publisher %> <%= project %> <%= edition %>.json" href="<%= json %>">JSON Data</a></li>
             </ul>
           </td>
         </tr>
         <tr>
           <th>Permalink</th>
           <% const permalink = `https://commonform.org/${publisher}/${project}/${edition}` %>
-          <td><a href="<%= permalink %>"><%= permalink %></a></td>
+          <td><a href="<%= permalink %>"><%= permalink.replace(/^https:\/\//, '') %></a></td>
+        </tr>
+        <tr>
+          <th>Complete</th>
+          <% const complete = `https://commonform.org/${publisher}/${project}/${edition}-complete` %>
+          <td><a href="<%= complete %>"><%= complete.replace(/^https:\/\//, '') %></a></td>
         </tr>
         <tr>
           <th>Annotated</th>
           <% const annotated = `https://commonform.org/${publisher}/${project}/${edition}-annotated` %>
-          <td><a href="<%= annotated %>"><%= annotated %></a></td>
+          <td><a href="<%= annotated %>"><%= annotated.replace(/^https:\/\//, '') %></a></td>
         </tr>
       </table>
     </main>
@@ -91,7 +108,9 @@
       <% if (publisherMetadata.email) { %>
       <p><a href="mailto:<%= publisherMetadata.email %>?subject=<%= encodeURIComponent(`Feedback on ${project} ${edition}`) %>">E-mail the publisher of this form.</a></p>
       <% } %>
+      <p>This form has been <a href=/permanence>permanently published</a>.</p>
       <p><a href="<%= github %>">Source file on GitHub.</a></p>
+      <p><a href=/terms>Terms of Service</a></p>
     </footer>
   </body>
 </html>

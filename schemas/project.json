@@ -12,6 +12,9 @@
     "star": {
       "type": "boolean"
     },
+    "featured": {
+      "type": "boolean"
+    },
     "trademarks": {
       "type": "array",
       "items": {
@@ -26,6 +29,10 @@
     "website": {
       "type": "string",
       "format": "uri"
+    },
+    "logo": {
+      "type": "string",
+      "format": "uri-reference"
     },
     "description": {
       "type": "string"

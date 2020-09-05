@@ -1,7 +1,7 @@
 {
   "type": "object",
   "additionalProperties": false,
-  "required": ["published"],
+  "required": ["published", "digest"],
   "properties": {
     "title": {
       "type": "string",
@@ -11,13 +11,28 @@
       "type": "string",
       "format": "date"
     },
+    "digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
     "license": {
       "enum": [
         "CC0-1.0",
+        "CC-BY-4.0",
         "kemitchell/law-form-license/1e",
         "kemitchell/tiny-verbatim-license/1e",
-        "waypoint/waypoint-license/1e"
+        "waypoint/waypoint-license/1e",
+        "blueoakcouncil/model-permission/1e"
       ]
+    },
+    "defaults": {
+      "type": "object",
+      "patternProperties": {
+        ".*": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
     },
     "numbering": {
       "enum": ["outline", "decimal"]

@@ -15,8 +15,20 @@
       <p>an open repository of legal forms</p>
     </header>
     <main role=main>
-      <h2>Publishers</h2>
-      <p><a href=/guide>You can publish to commonform.org.</a></p>
+      <h2>Featured Forms</h2>
+      <ul class=featured>
+      <% featured.forEach((feature) => { %>
+        <li>
+          <a href="/<%= feature.publisher %>/<%= feature.project %>/<%= feature.edition %>">
+            <% if (feature.logo) { %><img class=logo src="<%= feature.logo %>" alt=logo><% } %>
+            <%= feature.title %>
+          </a>
+          <%- feature.description %>
+        </li>
+      <% }) %>
+      </ul>
+      <h2>Projects and Publishers</h2>
+      <p><a href=/guide>You can publish to commonform.org, too.</a></p>
       <ul>
         <% publishers.forEach((publisher) => { %>
         <% if (publisher.id === 'test') return %>
@@ -30,9 +42,17 @@
       </ul>
     </main>
     <footer role=contentinfo>
-      <p><a href=https://edit.commonform.org>Edit forms.</a></p>
-      <p><a href=https://redline.commonform.org>Redline forms.</a></p>
-      <p><a href=https://github.com/commonform/commonform.org>Contribute on GitHub.</a></p>
+      <p>
+        More Contract Fun:
+        <a href=https://edit.commonform.org>Edit forms.</a>
+        <a href=https://redline.commonform.org>Redline things.</a>
+      </p>
+      <p>
+        Behind the Curtain:
+        <a href=https://github.com/commonform/commonform.org>Fiddle on GitHub.</a>
+        <a href=/thanks>Thank fine people.</a>
+      </p>
+      <p><a href=/terms>Terms of Service</a></p>
     </footer>
   </body>
 </html>

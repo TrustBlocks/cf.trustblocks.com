@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 const AJV = require('ajv')
+const analyze = require('commonform-analyze')
 const commonmark = require('commonmark')
 const critique = require('commonform-critique')
-const docx = require('commonform-docx')
 const ejs = require('ejs')
 const englishMonths = require('english-months')
 const fs = require('fs')
@@ -14,11 +14,15 @@ const loadComponents = require('commonform-load-components')
 const markup = require('commonform-commonmark')
 const ooxmlSignaturePages = require('ooxml-signature-pages')
 const path = require('path')
+const prepareBlanks = require('commonform-prepare-blanks')
+const renderDOCX = require('commonform-docx')
+const renderHTML = require('commonform-html')
 const revedCompare = require('reviewers-edition-compare')
+const revedParse = require('reviewers-edition-parse')
 const revedSpell = require('reviewers-edition-spell')
 const rimraf = require('rimraf')
+const runParallel = require('run-parallel')
 const runSeries = require('run-series')
-const toHTML = require('commonform-html')
 const toSemVer = require('reviewers-edition-to-semver')
 
 const numberings = {
@@ -76,6 +80,12 @@ const forms = formFiles.map((file) => {
     form = markup.parse(content).form
   } catch (error) {
     throw new Error(`invalid markup: ${file}`)
+  }
+  const digest = hash(form)
+  if (frontMatter.digest && frontMatter.digest !== digest) {
+    throw new Error(
+      `${file} form digest does not match front matter`,
+    )
   }
   const dirname = path.dirname(file)
   const [_, publisher, project] = dirname.split(path.sep)
@@ -179,23 +189,38 @@ runSeries(
   formFiles.map((file) => {
     return (done) => {
       const contents = fs.readFileSync(file, 'utf8')
-      const parsed = grayMatter(contents)
-      const content = parsed.content
-      const frontMatter = parsed.data
+      const split = grayMatter(contents)
+      const content = split.content
+      const frontMatter = split.data
       if (!validateFrontMatter(frontMatter)) {
         console.error(validateFrontMatter.errors)
         throw new Error(`invalid front matter: ${file}`)
       }
-      const form = markup.parse(content).form
-      loadComponents(
-        clone(form),
-        loadOptions,
-        (error, loaded, resolutions) => {
+      const parsed = markup.parse(content)
+      const form = parsed.form
+      runParallel(
+        {
+          original: (done) => {
+            const options = Object.assign(
+              { original: true },
+              loadOptions,
+            )
+            loadComponents(clone(form), options, done)
+          },
+        },
+        (error, loaded) => {
           if (error) throw error
-          const rendered = toHTML(loaded, [], {
+          const values = prepareBlanks(
+            frontMatter.defaults || {},
+            parsed.directions,
+          )
+          const rendered = renderHTML(clone(form), values, {
             html5: true,
             lists: true,
             ids: true,
+            depth: 1,
+            smartify: true,
+            classNames: ['form'],
           })
           const dirname = path.dirname(file)
           const [_, publisher, project] = dirname.split(path.sep)
@@ -204,17 +229,22 @@ runSeries(
           const annotations = []
             .concat(lint(form))
             .concat(critique(form))
+          var analysis = analyze(form)
+          const spelled = projectMetadata[publisher][project]
+            .semver
+            ? toSemVer(edition)
+            : revedSpell(edition)
           const data = Object.assign(
             {
               title,
-              github: `https://github.com/commonform/commonform.org/blob/master/${file}`,
+              github: `https://github.com/commonform/commonform.org/blob/main/${file}`,
               digest: hash(form),
               docx: `${edition}.docx`,
+              completeDOCX: `${edition}-complete.docx`,
               json: `${edition}.json`,
               markdown: `${edition}.md`,
-              spelled: projectMetadata[publisher][project].semver
-                ? toSemVer(edition)
-                : revedSpell(edition),
+              originalMarkdown: `${edition}-original.md`,
+              spelled,
               project,
               projectMetadata:
                 projectMetadata[publisher][project],
@@ -227,6 +257,7 @@ runSeries(
               ),
               rendered,
               edition,
+              draft: Boolean(revedParse(edition).draft),
             },
             frontMatter,
           )
@@ -246,12 +277,47 @@ runSeries(
           fs.mkdirSync(path.dirname(page), { recursive: true })
           fs.writeFileSync(page, html)
 
-          data.rendered = toHTML(loaded, [], {
-            html5: true,
-            lists: true,
-            ids: true,
-            annotations,
-          })
+          writeHTML(loaded.original, 'complete')
+
+          function writeHTML(form, suffix) {
+            data.rendered = renderHTML(clone(form), values, {
+              html5: true,
+              lists: true,
+              ids: true,
+              depth: 1,
+              smartify: true,
+              classNames: ['form'],
+            })
+            try {
+              html = ejs.render(templates.form, data)
+            } catch (error) {
+              throw new Error(`${file}: ${error.message}`)
+            }
+            const htmlFile = path.join(
+              'site',
+              publisher,
+              project,
+              `${edition}-${suffix}.html`,
+            )
+            fs.mkdirSync(path.dirname(htmlFile), {
+              recursive: true,
+            })
+            fs.writeFileSync(htmlFile, html)
+          }
+
+          data.rendered = renderHTML(
+            clone(loaded.original),
+            values,
+            {
+              html5: true,
+              lists: true,
+              ids: true,
+              depth: 1,
+              smartify: true,
+              classNames: ['form'],
+              annotations,
+            },
+          )
           try {
             html = ejs.render(templates.form, data)
           } catch (error) {
@@ -287,12 +353,13 @@ runSeries(
           publishers[publisher].projects[project].editions[
             edition
           ] = frontMatter
-          docx(loaded, [], {
+          var docxOptions = {
             title,
             edition,
             centerTitle: false,
             indentMargins: true,
             markFilled: true,
+            smartify: true,
             numbering:
               numberings[frontMatter.numbering || 'outline'],
             after: frontMatter.signaturePages
@@ -310,17 +377,28 @@ runSeries(
                 italic: true,
               },
             },
-          })
-            .generateAsync({ type: 'nodebuffer' })
-            .then((buffer) => {
-              const wordFile = path.join(
-                'site',
-                publisher,
-                project,
-                `${edition}.docx`,
-              )
-              fs.writeFileSync(wordFile, buffer)
+          }
+
+          writeDOCX(form, '')
+          writeDOCX(loaded.original, '-complete', '')
+
+          function writeDOCX(form, suffix, label) {
+            label = label || ''
+            const options = Object.assign({}, docxOptions, {
+              edition: spelled + ' ' + label,
             })
+            renderDOCX(clone(form), values, options)
+              .generateAsync({ type: 'nodebuffer' })
+              .then((buffer) => {
+                const wordFile = path.join(
+                  'site',
+                  publisher,
+                  project,
+                  `${edition}${suffix}.docx`,
+                )
+                fs.writeFileSync(wordFile, buffer)
+              })
+          }
 
           const jsonFile = path.join(
             'site',
@@ -342,6 +420,21 @@ runSeries(
             `${edition}.md`,
           )
           fs.writeFileSync(markdownFile, content)
+
+          writeMarkdown(loaded.original, '-original')
+          function writeMarkdown(form, suffix) {
+            const markdownFile = path.join(
+              'site',
+              publisher,
+              project,
+              `${edition}${suffix}.md`,
+            )
+            fs.writeFileSync(
+              markdownFile,
+              markup.stringify(form),
+            )
+          }
+
           done()
         },
       )
@@ -375,6 +468,7 @@ function renderPublisherPages() {
           email: false,
           website: false,
           location: false,
+          logo: false,
           name: false,
           trademarks: false,
           components: projectsArray.filter((project) => {
@@ -416,7 +510,7 @@ function renderPublisherPages() {
             }
           })
           .sort((a, b) => {
-            return revedCompare(a.edition, b.edition)
+            return revedCompare(b.number, a.number)
           })
         const data = Object.assign(
           {
@@ -425,6 +519,7 @@ function renderPublisherPages() {
             editions,
             trademarks: false,
             archived: false,
+            logo: false,
             website: false,
           },
           projectMetadata[publisher][project],
@@ -452,7 +547,34 @@ function renderPublisherPages() {
 
 function renderHomePage() {
   const page = path.join('site', 'index.html')
+  const featured = []
+  Object.keys(publishers).forEach((publisherName) => {
+    const publisher = publishers[publisherName]
+    const projects = publishers[publisherName].projects
+    Object.keys(projects).forEach((projectName) => {
+      const project = projects[projectName]
+      const editions = project.editions
+      const latest = Object.keys(editions)
+        .sort((a, b) => revedCompare(a, b))
+        .reverse()[0]
+      const edition = editions[latest]
+      if (project.featured) {
+        featured.push({
+          publisher: publisherName,
+          name: publisherMetadata[publisherName].name,
+          project: projectName,
+          description: project.description,
+          edition: latest,
+          published: edition.published,
+          title: edition.title,
+          logo: project.logo || false,
+        })
+      }
+    })
+  })
+  featured.sort((a, b) => b.published.localeCompare(a.published))
   const data = {
+    featured,
     publishers: Object.keys(publishers)
       .map((publisher) => {
         return Object.assign(
@@ -563,4 +685,8 @@ function displayDate(string) {
     ', ' +
     date.getFullYear()
   )
+}
+
+function has(object, key) {
+  return Object.prototype.hasOwnProperty.call(object, key)
 }
