@@ -56,6 +56,11 @@ header[role='logo'] img {
   border-bottom: none;
 }
 
+header[role='logo'] a {
+  width: 10rem;
+  padding-left: 2rem;
+  border-bottom: none;
+}
 main[role='main'] h1 {
   margin: 1rem 0;
 }
