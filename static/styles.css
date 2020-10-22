@@ -29,7 +29,7 @@ footer[role='contentinfo'] {
 }
 
 header[role='banner'] {
-  margin-top: 2rem;
+  margin-top: 4rem;
 }
 
 header[role='banner'] a:first-child {
@@ -57,10 +57,16 @@ header[role='logo'] img {
 }
 
 header[role='logo'] a[href] {
-  width: 10rem;
-  padding-left: 2rem;
+  width: 20rem;
   border-bottom: none;
 }
+
+header[role='logo'] p {
+  margin-left: 2rem;
+  font-size: 18px;
+  border-bottom: none;
+}
+
 main[role='main'] h1 {
   margin: 1rem 0;
 }
