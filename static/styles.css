@@ -50,13 +50,13 @@ header[role='banner'] img {
   margin-bottom: 1em;
 }
 header[role='logo'] img {
-  width: 8rem;
+  width: 10rem;
   padding-left: 2rem;
   margin-bottom: 1em;
   border-bottom: none;
 }
 
-header[role='logo'] a {
+header[role='logo'] a[href] {
   width: 10rem;
   padding-left: 2rem;
   border-bottom: none;
