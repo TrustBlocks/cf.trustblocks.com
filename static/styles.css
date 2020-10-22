@@ -54,9 +54,8 @@ header[role='banner'] img {
   margin-bottom: 1em;
 }
 
-header[role='logo'] {
+header {
   border-bottom: none;
-  background-image: url('tb-pattern.png');
 }
 
 header[role='logo'] img {
