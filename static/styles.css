@@ -52,12 +52,11 @@ header[role='banner'] img {
 header[role='logo'] img {
   width: 26rem;
   padding-left: 6rem;
-  margin-top: 15em;
+  margin-top: 4em;
   border-bottom: none;
 }
 
 header[role='logo'] a[href] {
-  width: 10rem;
   border-bottom: none;
 }
 
