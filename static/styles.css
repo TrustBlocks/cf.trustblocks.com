@@ -46,7 +46,11 @@ main[role='main'] {
 }
 
 header[role='banner'] img {
-  width: 60rem;
+  width: 6rem;
+  margin-bottom: 1em;
+}
+header[role='logo'] img {
+  width: 20rem;
   margin-bottom: 1em;
 }
 
