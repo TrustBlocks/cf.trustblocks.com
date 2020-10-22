@@ -50,8 +50,10 @@ header[role='banner'] img {
   margin-bottom: 1em;
 }
 header[role='logo'] img {
-  width: 10rem;
+  width: 8rem;
+  padding-left: 2rem;
   margin-bottom: 1em;
+  border-bottom: none;
 }
 
 main[role='main'] h1 {
