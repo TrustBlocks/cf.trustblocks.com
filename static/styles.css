@@ -50,9 +50,8 @@ header[role='banner'] img {
   margin-bottom: 1em;
 }
 header[role='logo'] img {
-  width: 24rem;
-  padding-left: 10rem;
-  margin-left: 10rem;
+  width: 26rem;
+  padding-left: 6rem;
   margin-top: 15em;
   border-bottom: none;
 }
@@ -64,7 +63,7 @@ header[role='logo'] a[href] {
 
 header[role='logo'] p {
   margin-left: 20rem;
-  font-size: 18px;
+  font-size: 24px;
   border-bottom: none;
 }
 
