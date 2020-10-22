@@ -20,6 +20,7 @@ html {
 }
 
 header[role='banner'],
+header[role='logo'],
 main[role='main'],
 footer[role='contentinfo'] {
   margin-left: auto;
