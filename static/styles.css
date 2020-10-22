@@ -31,12 +31,12 @@ footer[role='contentinfo'] {
 }
 
 header[role='banner'] {
+  border-bottom: none;
+  background-image: url('tb-pattern.png');
   margin-top: 4rem;
 }
 
 header[role='banner'] a:first-child {
-  border-bottom: none;
-  background-image: 'tb-pattern.png';
   background-repeat: repeat-y;
 }
 
@@ -52,6 +52,11 @@ main[role='main'] {
 header[role='banner'] img {
   width: 6rem;
   margin-bottom: 1em;
+}
+
+header[role='logo'] {
+  border-bottom: none;
+  background-image: url('tb-pattern.png');
 }
 
 header[role='logo'] img {
