@@ -36,7 +36,7 @@ header[role='banner'] {
 
 header[role='banner'] a:first-child {
   border-bottom: none;
-  background-image: url('tb-pattern.png');
+  background-image: 'tb-pattern.png';
   background-repeat: repeat-y;
 }
 
