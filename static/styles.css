@@ -59,8 +59,8 @@ main[role='main'] img {
 }
 
 main[role='main'] .logo {
-  max-height: 4rem;
-  max-width: 4rem;
+  max-height: 6rem;
+  max-width: 20rem;
   min-width: 3rem;
 }
 
