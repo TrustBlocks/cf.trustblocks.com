@@ -49,6 +49,7 @@ header[role='banner'] img {
   width: 6rem;
   margin-bottom: 1em;
 }
+
 header[role='logo'] img {
   width: 26rem;
   padding-left: 6rem;
@@ -61,7 +62,7 @@ header[role='logo'] a[href] {
 }
 
 header[role='logo'] p {
-  margin-left: 20rem;
+  margin-left: 10rem;
   font-size: 24px;
   border-bottom: none;
 }
